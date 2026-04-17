@@ -5,8 +5,33 @@
 #include "inode.h"
 #include "diskimg.h"
 
-// remove the placeholder implementation and replace with your own
 int file_getblock(struct unixfilesystem *fs, int inumber, int blockNum, void *buf) {
-  fprintf(stderr, "file_getblock(inumber = %d, blockNum = %d) unimplemented. returning -1\n", inumber, blockNum);
-  return -1;  
+  struct inode in;
+  int err = inode_iget(fs, inumber, &in);
+  if (err < 0) {
+    return -1;
+  }
+
+  int sector = inode_indexlookup(fs, &in, blockNum);
+  if (sector < 0) {
+    return -1;
+  }
+
+  int bytes = diskimg_readsector(fs->dfd, sector, buf);
+  if (bytes < 0) {
+    return -1;
+  }
+
+  // last block may be partial
+  int filesize   = inode_getsize(&in);
+  int blockStart = blockNum * DISKIMG_SECTOR_SIZE;
+  int validBytes = filesize - blockStart;
+
+  if (validBytes <= 0) {
+    return 0;
+  }
+  if (validBytes > DISKIMG_SECTOR_SIZE) {
+    return DISKIMG_SECTOR_SIZE;
+  }
+  return validBytes;
 }

@@ -25,6 +25,9 @@ static int GetDirEntries(struct unixfilesystem *fs, int inumber, struct direntv6
 
 int main(int argc, char *argv[]) {
   int opt;
+
+  // the assigemtn is wrong 
+  // -m and -b are not valid flags!!!
   while ((opt = getopt(argc, argv, "iqp")) != -1) {
     switch (opt) {
     case 'q':
